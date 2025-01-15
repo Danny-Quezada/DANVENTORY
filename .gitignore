@@ -44,3 +44,16 @@ app.*.map.json
 
 # Enviroment files
 **/assets/.env
+
+# Firebase
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+.firebase/
+.firebasehostingcache/
+firebase-debug.log
+.firebaserc
+firebase.json
+
+**/lib/testUI
+
+
