@@ -52,4 +52,12 @@ class UserProvider extends ChangeNotifier {
       rethrow;
     }
   }
+   Future<bool> verifyEmail(String email) async {
+    try{
+      return await iUserModel.verifyEmail(email);
+    }
+    catch(e){
+      rethrow;
+    }
+   }
 }

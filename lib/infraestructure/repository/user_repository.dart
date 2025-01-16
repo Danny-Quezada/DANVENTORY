@@ -15,6 +15,7 @@ class UserRepository implements IUserModel {
     try {
       UserCredential credential = await _fDataSource.auth
           .createUserWithEmailAndPassword(email: t.email, password: t.password);
+      t.userIdAuth = credential.user!.uid;
       await _db.client.from("users").insert(t.toMap());
 
       return credential.user!.uid;
@@ -50,16 +51,13 @@ class UserRepository implements IUserModel {
   @override
   Future<bool> signInWithGoogle() async {
     try {
-      // 1. Inicia el flujo de Sign-In con Google
       final GoogleSignInAccount? googleSignInAccount =
           await _fDataSource.googleSignIn.signIn();
 
       if (googleSignInAccount == null) {
-        // El usuario canceló el inicio de sesión
         return false;
       }
 
-      // 2. Obtiene las credenciales de autenticación de Google
       final GoogleSignInAuthentication googleSignInAuthentication =
           await googleSignInAccount.authentication;
       final AuthCredential authCredential = GoogleAuthProvider.credential(
@@ -67,24 +65,19 @@ class UserRepository implements IUserModel {
         idToken: googleSignInAuthentication.idToken,
       );
 
-      // 3. Inicia sesión con Firebase
       UserCredential credential =
           await _fDataSource.auth.signInWithCredential(authCredential);
 
       if (credential.user == null) {
-       
         return false;
       }
 
-      
       final List<dynamic> response = await _db.client
           .from('users')
-          .select() 
-          .eq('userIdAuth',
-              credential.user!.uid); 
+          .select()
+          .eq('userIdAuth', credential.user!.uid);
 
       if (response.isEmpty) {
-
         final UserModel userGoogle = UserModel(
           userIdAuth: credential.user!.uid,
           name: credential.user!.displayName ?? '',
@@ -93,26 +86,19 @@ class UserRepository implements IUserModel {
           userId: 0,
         );
 
-      
-        final List<dynamic> insertResponse = await _db.client
-            .from('users')
-            .insert(userGoogle.toMap())
-            .select();
+        final List<dynamic> insertResponse =
+            await _db.client.from('users').insert(userGoogle.toMap()).select();
 
         if (insertResponse.isNotEmpty) {
           throw Exception("Usuario insertado correctamente: $insertResponse");
         } else {
           throw Exception("No se pudo insertar el usuario.");
         }
-      } else {
-        throw Exception("El usuario ya existe. No se creará uno nuevo.");
       }
-
-    
+      return true;
     } on FirebaseAuthException catch (e) {
       throw Exception("Problemas con FirebaseAuth: $e");
     } on PostgrestException catch (e) {
-      // Si ocurre un error en la consulta de Supabase, se captura aquí
       throw Exception("Error en Supabase: ${e.message}");
     } catch (e) {
       throw Exception("Error inesperado: $e");
@@ -128,14 +114,12 @@ class UserRepository implements IUserModel {
   @override
   Future<UserModel> verifyUser(String email, String password) async {
     try {
-     
       UserCredential userCredential =
           await _fDataSource.auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-     
       if (userCredential.user == null) {
         throw Exception("No se pudo autenticar el usuario.");
       }
@@ -160,6 +144,26 @@ class UserRepository implements IUserModel {
       }
     } catch (e) {
       throw Exception("Error inesperado: $e");
+    }
+  }
+
+  @override
+  Future<UserModel> recoverAccount(UserModel t, String newPassword) {
+    // TODO: implement recoverAccount
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> verifyEmail(String email) async {
+    try {
+      final response =
+          await _db.client.from("users").select().eq("email", email);
+      if (response.isEmpty) {
+        return true;
+      }
+      throw Exception("Ya existe una cuenta con este correo.");
+    } catch (e) {
+      throw Exception("Problemas con el servidor: ${e.toString()}");
     }
   }
 }

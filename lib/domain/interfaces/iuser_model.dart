@@ -5,4 +5,6 @@ abstract class IUserModel extends IModel<UserModel> {
   Future<UserModel> verifyUser(String email, String password);
   Future<bool> signInWithGoogle();
   Future<UserModel> getUserById(String id);
+  Future<bool> verifyEmail(String email);
+  Future<UserModel> recoverAccount(UserModel t, String newPassword);
 }
