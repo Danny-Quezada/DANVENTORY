@@ -3,6 +3,8 @@ import 'package:danventory/domain/interfaces/icategory_model.dart';
 import 'package:flutter/foundation.dart';
 
 class CategoryProvider extends ChangeNotifier {
+  String search="";
+  bool isActive = true;
   List<CategoryModel> categoryModels = [CategoryModel(name: "Pantalon 👖")];
   ICategoryModel categoryModel;
   CategoryProvider({required this.categoryModel});
@@ -18,6 +20,15 @@ class CategoryProvider extends ChangeNotifier {
     } catch (e) {
       rethrow;
     }
+  }
+
+  void changeDrop() {
+    isActive = !isActive;
+    notifyListeners();
+  }
+  void searchFind(String word){
+    search=word;
+    notifyListeners();
   }
 
   Future<void> delete(CategoryModel t) async {

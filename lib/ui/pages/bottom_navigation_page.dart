@@ -1,3 +1,4 @@
+import 'package:danventory/ui/pages/category_page.dart';
 import 'package:danventory/ui/pages/principal_page.dart';
 import 'package:danventory/ui/pages/setting_page.dart';
 import 'package:danventory/ui/widgets/safe_scaffold.dart';
@@ -21,7 +22,6 @@ class _BottomNavigationPageState extends State<BottomNavigationPage> {
         fixedColor: Colors.blue,
         elevation: 0,
         enableFeedback: true,
-        
         type: BottomNavigationBarType.shifting,
         unselectedItemColor: Colors.grey.shade400,
         onTap: (index) {
@@ -55,7 +55,7 @@ class _BottomNavigationPageState extends State<BottomNavigationPage> {
     } else if (_currentIndex == 1) {
       return PrincipalPage();
     } else if (_currentIndex == 2) {
-      return SettingPage();
+      return CategoryPage();
     }
     return SettingPage();
   }

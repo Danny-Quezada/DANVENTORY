@@ -13,7 +13,7 @@ class SafeScaffold extends StatelessWidget {
     this.appBar,
     this.floatingActionButton,
     this.bottomNavigationBar,
-    this.padding = const EdgeInsets.all(16.0),
+    this.padding = const EdgeInsets.all(8.0),
   }) : super(key: key);
 
   @override
