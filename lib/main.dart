@@ -1,5 +1,8 @@
+import 'package:danventory/domain/interfaces/icategory_model.dart';
 import 'package:danventory/domain/interfaces/iuser_model.dart';
+import 'package:danventory/infraestructure/repository/category_repository.dart';
 import 'package:danventory/infraestructure/repository/user_repository.dart';
+import 'package:danventory/providers/category_provider.dart';
 import 'package:danventory/providers/user_provider.dart';
 import 'package:danventory/ui/pages/bottom_navigation_page.dart';
 import 'package:danventory/ui/pages/initial_page.dart';
@@ -27,18 +30,18 @@ void main(List<String> args) async {
   );
 // Using for database, buckets
   await Supabase.initialize(url: url, anonKey: anonKey);
-  
-
-
 
   runApp(MultiProvider(
     providers: [
-       Provider<IUserModel>(create: (_) => UserRepository()),
-       ChangeNotifierProvider<UserProvider>(
-            create: (context) => UserProvider(
-                iUserModel:
-                    Provider.of<IUserModel>(context, listen: false))),
-                  
+      Provider<IUserModel>(create: (_) => UserRepository()),
+      ChangeNotifierProvider<UserProvider>(
+          create: (context) => UserProvider(
+              iUserModel: Provider.of<IUserModel>(context, listen: false))),
+      Provider<ICategoryModel>(create: (_) => CategoryRepository()),
+      ChangeNotifierProvider<CategoryProvider>(
+          create: (context) => CategoryProvider(
+              categoryModel:
+                  Provider.of<ICategoryModel>(context, listen: false))),
     ],
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -46,21 +49,22 @@ void main(List<String> args) async {
       themeMode: ThemeMode.light,
       initialRoute: "/",
       routes: {
-        "/": (context) => Consumer<UserProvider>(builder: (context, userProvider, _) {
-                return StreamBuilder(
-                    stream: FirebaseAuth.instance.authStateChanges(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        return FutureBuilder(
-                            future: userProvider.loadCurrentUser(),
-                            builder: (context, userSnapshot) {
-                              return const BottomNavigationPage();
-                            });
-                      } else {
-                        return const InitialPage();
-                      }
-                    });
-              }),
+        "/": (context) =>
+            Consumer<UserProvider>(builder: (context, userProvider, _) {
+              return StreamBuilder(
+                  stream: FirebaseAuth.instance.authStateChanges(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return FutureBuilder(
+                          future: userProvider.loadCurrentUser(),
+                          builder: (context, userSnapshot) {
+                            return const BottomNavigationPage();
+                          });
+                    } else {
+                      return const InitialPage();
+                    }
+                  });
+            }),
         "/login": (context) => LoginPage(),
         "/signup": (context) => SignUpPage(),
       },
