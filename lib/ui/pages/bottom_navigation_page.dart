@@ -55,7 +55,7 @@ class _BottomNavigationPageState extends State<BottomNavigationPage> {
     } else if (_currentIndex == 1) {
       return PrincipalPage();
     } else if (_currentIndex == 2) {
-      return CategoryPage();
+      return const CategoryPage();
     }
     return SettingPage();
   }

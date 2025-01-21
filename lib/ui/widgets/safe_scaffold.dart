@@ -8,13 +8,13 @@ class SafeScaffold extends StatelessWidget {
   final Widget? bottomNavigationBar;
 
   const SafeScaffold({
-    Key? key,
+    super.key,
     required this.body,
     this.appBar,
     this.floatingActionButton,
     this.bottomNavigationBar,
     this.padding = const EdgeInsets.all(8.0),
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

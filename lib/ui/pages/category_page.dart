@@ -41,7 +41,7 @@ class CategoryPage extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(
-              child: Text("Error al cargar los libros"),
+              child: Text("Error al cargar las categorias"),
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
             return SkeletonListView();
