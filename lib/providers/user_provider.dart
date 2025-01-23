@@ -2,8 +2,6 @@ import 'package:danventory/domain/entities/user_model.dart';
 import 'package:danventory/domain/interfaces/iuser_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-
-
 class UserProvider extends ChangeNotifier {
   IUserModel iUserModel;
   User? firebaseUser;
@@ -52,12 +50,12 @@ class UserProvider extends ChangeNotifier {
       rethrow;
     }
   }
-   Future<bool> verifyEmail(String email) async {
-    try{
+
+  Future<bool> verifyEmail(String email) async {
+    try {
       return await iUserModel.verifyEmail(email);
-    }
-    catch(e){
+    } catch (e) {
       rethrow;
     }
-   }
+  }
 }
