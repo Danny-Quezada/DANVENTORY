@@ -35,6 +35,12 @@ class ProductProvider extends ChangeNotifier {
   IProductModel iProductModel;
   ProductProvider({required this.iProductModel});
 
+
+  void updateQuantity(int productId, int quantity, bool status) {
+    int index=productModels.indexWhere((element) => element.productId == productId);
+    productModels[index].quantity= status ? productModels[index].quantity + quantity : productModels[index].quantity - quantity;
+    notifyListeners();
+  }
   Future<void> create(ProductModel t, List<File> images) async {
     try {
       final response = await iProductModel.create(t);
