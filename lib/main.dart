@@ -1,10 +1,13 @@
 import 'package:danventory/domain/interfaces/icategory_model.dart';
+import 'package:danventory/domain/interfaces/iorder_model.dart';
 import 'package:danventory/domain/interfaces/iproduct_model.dart';
 import 'package:danventory/domain/interfaces/iuser_model.dart';
 import 'package:danventory/infraestructure/repository/category_repository.dart';
+import 'package:danventory/infraestructure/repository/order_repository.dart';
 import 'package:danventory/infraestructure/repository/product_repository.dart';
 import 'package:danventory/infraestructure/repository/user_repository.dart';
 import 'package:danventory/providers/category_provider.dart';
+import 'package:danventory/providers/order_provider.dart';
 import 'package:danventory/providers/product_provider.dart';
 import 'package:danventory/providers/user_provider.dart';
 import 'package:danventory/ui/pages/bottom_navigation_page.dart';
@@ -20,6 +23,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,8 +55,18 @@ void main(List<String> args) async {
           create: (context) => ProductProvider(
               iProductModel:
                   Provider.of<IProductModel>(context, listen: false))),
+      Provider<IOrderModel>(create: (_) => OrderRepository()),
+      ChangeNotifierProvider<OrderProvider>(
+          create: (context) => OrderProvider(
+              iOrderModel: Provider.of<IOrderModel>(context, listen: false))),
     ],
     child: MaterialApp(
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: const [
+         Locale('es', ''),
+        Locale('en', ''),
+       
+      ],
       debugShowCheckedModeBanner: false,
       theme: ThemeSetting.themeData,
       themeMode: ThemeMode.light,

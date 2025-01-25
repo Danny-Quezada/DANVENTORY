@@ -1,26 +1,29 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:danventory/domain/entities/product_model.dart';
 import 'package:danventory/ui/utils/theme_setting.dart';
-import 'package:danventory/ui/widgets/choice_chip_widget.dart';
 
 import 'package:flutter/material.dart';
 
 class ListTileWidgetProduct extends StatelessWidget {
   final ProductModel productModel;
-
-  const ListTileWidgetProduct({super.key, required this.productModel});
+  final Function onTap;
+  const ListTileWidgetProduct(
+      {super.key, required this.productModel, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
         isThreeLine: true,
-        trailing: IconButton.filled(
-          onPressed: () {},
-          icon: const Icon(Icons.add),
-          color: Colors.white,
-          style: const ButtonStyle().copyWith(
-              backgroundColor: const WidgetStatePropertyAll(Colors.black)),
-        ),
+        trailing: productModel.status
+            ? IconButton.filled(
+                onPressed: () => onTap(),
+                icon: const Icon(Icons.add),
+                color: Colors.white,
+                style: const ButtonStyle().copyWith(
+                    backgroundColor:
+                        const WidgetStatePropertyAll(Colors.black)),
+              )
+            : null,
         leading: productModel.image == null
             ? null
             : CachedNetworkImage(

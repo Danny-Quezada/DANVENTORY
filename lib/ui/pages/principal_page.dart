@@ -2,6 +2,7 @@ import 'package:danventory/domain/entities/category_model.dart';
 import 'package:danventory/domain/entities/product_model.dart';
 import 'package:danventory/providers/product_provider.dart';
 import 'package:danventory/providers/user_provider.dart';
+import 'package:danventory/ui/pages/order_page.dart';
 import 'package:danventory/ui/pages/product_page.dart';
 import 'package:danventory/ui/utils/theme_setting.dart';
 import 'package:danventory/ui/widgets/empty_widget.dart';
@@ -111,6 +112,15 @@ class PrincipalPage extends StatelessWidget {
                                   )
                                 ]),
                             child: ListTileWidgetProduct(
+                                onTap: () {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) {
+                                    return OrderPage(
+                                      productId: productModel.productId,
+                                      productName: productModel.productName,
+                                    );
+                                  }));
+                                },
                                 productModel: productModel),
                           );
                         },
