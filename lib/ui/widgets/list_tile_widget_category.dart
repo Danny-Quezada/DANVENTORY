@@ -13,16 +13,19 @@ class ListTileWidgetCategory extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
         contentPadding: EdgeInsets.zero,
-        title: Row(children: [
-          Text(
-            categoryModel.name,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(
-            width: 3,
-          ),
-          ChoiceChipWidget(isActive: categoryModel.status ?? false)
-        ]),
+        title: Wrap(
+            alignment: WrapAlignment.start,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                categoryModel.name,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(
+                width: 3,
+              ),
+              ChoiceChipWidget(isActive: categoryModel.status ?? false)
+            ]),
         subtitle: Text(
           categoryModel.description!,
           style: const TextStyle(color: ThemeSetting.borderColor),

@@ -36,22 +36,24 @@ class ListTileWidgetProduct extends StatelessWidget {
                 errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
         contentPadding: EdgeInsets.zero,
-        title: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Text(
-            productModel.productName,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(
-            width: 3,
-          ),
-          Text(productModel.status ? "Activo" : "Inactivo",
-              style: TextStyle(
+        title: Text.rich(
+          TextSpan(
+            text: "${productModel.productName} ",
+            children: [
+              TextSpan(
+                text: productModel.status ? "Activo" : "Inactivo",
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
                   color: productModel.status
                       ? ThemeSetting.greenColor
                       : ThemeSetting.redColor,
                   fontSize: 12,
-                  fontWeight: FontWeight.w700)),
-        ]),
+                ),
+              ),
+            ],
+          ),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         subtitle: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -2,7 +2,6 @@ import 'package:danventory/ui/widgets/logo_widget.dart';
 import 'package:danventory/ui/widgets/safe_scaffold.dart';
 import 'package:flutter/material.dart';
 
-
 class InitialPage extends StatelessWidget {
   const InitialPage({super.key});
 
@@ -63,6 +62,7 @@ class InitialPage extends StatelessWidget {
 
   Column _buildWelcomeText() {
     return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Bienvenido a DANVENTORY",

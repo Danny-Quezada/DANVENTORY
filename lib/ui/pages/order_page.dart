@@ -163,7 +163,7 @@ class OrderPage extends StatelessWidget {
                                               .delete(orderModel);
                                           productProvider.updateQuantity(
                                               productId,
-                                              orderModel.quantity,
+                                              orderModel.remainingQuantity,
                                               orderModel.status);
                                         },
                                       )
