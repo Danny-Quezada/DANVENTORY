@@ -7,12 +7,14 @@ class SafeScaffold extends StatelessWidget {
   final Widget? floatingActionButton;
   final EdgeInsetsGeometry padding;
   final Widget? bottomNavigationBar;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
 
   const SafeScaffold(
       {super.key,
       required this.body,
       this.appBar,
       this.floatingActionButton,
+      this.floatingActionButtonLocation,
       this.bottomNavigationBar,
       this.padding = const EdgeInsets.all(8.0)});
 
@@ -27,6 +29,7 @@ class SafeScaffold extends StatelessWidget {
                 child: body,
               ),
               floatingActionButton: floatingActionButton,
+              floatingActionButtonLocation: floatingActionButtonLocation,
               bottomNavigationBar: bottomNavigationBar,
             ),
           )
@@ -36,6 +39,7 @@ class SafeScaffold extends StatelessWidget {
               padding: padding,
               child: body,
             ),
+            floatingActionButtonLocation: floatingActionButtonLocation,
             floatingActionButton: floatingActionButton,
             bottomNavigationBar: bottomNavigationBar,
           );

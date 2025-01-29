@@ -1,4 +1,5 @@
 import 'package:danventory/ui/pages/category_page.dart';
+import 'package:danventory/ui/pages/dashboard_page.dart';
 import 'package:danventory/ui/pages/principal_page.dart';
 import 'package:danventory/ui/pages/setting_page.dart';
 import 'package:danventory/ui/widgets/safe_scaffold.dart';
@@ -12,11 +13,17 @@ class BottomNavigationPage extends StatefulWidget {
 }
 
 class _BottomNavigationPageState extends State<BottomNavigationPage> {
+  final List<Widget> _pages = const [
+    PrincipalPage(),
+    DashboardPage(),
+    CategoryPage(),
+    SettingPage(),
+  ];
   int _currentIndex = 0;
   @override
   Widget build(BuildContext context) {
     return SafeScaffold(
-      body: _buildBody(),
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         fixedColor: Colors.blue,
@@ -47,16 +54,5 @@ class _BottomNavigationPageState extends State<BottomNavigationPage> {
         ],
       ),
     );
-  }
-
-  Widget _buildBody() {
-    if (_currentIndex == 0) {
-      return PrincipalPage();
-    } else if (_currentIndex == 1) {
-      return PrincipalPage();
-    } else if (_currentIndex == 2) {
-      return const CategoryPage();
-    }
-    return SettingPage();
   }
 }
