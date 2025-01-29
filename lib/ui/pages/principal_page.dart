@@ -1,4 +1,4 @@
-import 'package:danventory/domain/entities/category_model.dart';
+
 import 'package:danventory/domain/entities/product_model.dart';
 import 'package:danventory/providers/product_provider.dart';
 import 'package:danventory/providers/user_provider.dart';
@@ -24,6 +24,7 @@ class PrincipalPage extends StatelessWidget {
 
     return SafeScaffold(
       floatingActionButton: FloatingActionButton(
+          heroTag: "add",
           backgroundColor: ThemeSetting.greenColor,
           child: const Icon(
             Icons.add,
@@ -116,8 +117,7 @@ class PrincipalPage extends StatelessWidget {
                                   Navigator.push(context,
                                       MaterialPageRoute(builder: (context) {
                                     return OrderPage(
-                                      productId: productModel.productId,
-                                      productName: productModel.productName,
+                                      productModel: productModel,
                                     );
                                   }));
                                 },

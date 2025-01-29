@@ -1,14 +1,17 @@
 import 'package:danventory/domain/interfaces/icategory_model.dart';
 import 'package:danventory/domain/interfaces/iorder_model.dart';
 import 'package:danventory/domain/interfaces/iproduct_model.dart';
+import 'package:danventory/domain/interfaces/isale_model.dart';
 import 'package:danventory/domain/interfaces/iuser_model.dart';
 import 'package:danventory/infraestructure/repository/category_repository.dart';
 import 'package:danventory/infraestructure/repository/order_repository.dart';
 import 'package:danventory/infraestructure/repository/product_repository.dart';
+import 'package:danventory/infraestructure/repository/sale_repository.dart';
 import 'package:danventory/infraestructure/repository/user_repository.dart';
 import 'package:danventory/providers/category_provider.dart';
 import 'package:danventory/providers/order_provider.dart';
 import 'package:danventory/providers/product_provider.dart';
+import 'package:danventory/providers/sale_provider.dart';
 import 'package:danventory/providers/user_provider.dart';
 import 'package:danventory/ui/pages/bottom_navigation_page.dart';
 import 'package:danventory/ui/pages/initial_page.dart';
@@ -59,13 +62,16 @@ void main(List<String> args) async {
       ChangeNotifierProvider<OrderProvider>(
           create: (context) => OrderProvider(
               iOrderModel: Provider.of<IOrderModel>(context, listen: false))),
+      Provider<ISaleModel>(create: (_) => SaleRepository()),
+      ChangeNotifierProvider<SaleProvider>(
+          create: (context) => SaleProvider(
+              iSaleModel: Provider.of<ISaleModel>(context, listen: false))),
     ],
     child: MaterialApp(
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       supportedLocales: const [
-         Locale('es', ''),
+        Locale('es', ''),
         Locale('en', ''),
-       
       ],
       debugShowCheckedModeBanner: false,
       theme: ThemeSetting.themeData,

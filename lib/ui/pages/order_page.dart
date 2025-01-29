@@ -1,25 +1,30 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:danventory/domain/entities/order_model.dart';
+import 'package:danventory/domain/entities/product_model.dart';
+import 'package:danventory/domain/entities/sale_model.dart';
+import 'package:danventory/domain/enums/stock_management_enum.dart';
 import 'package:danventory/providers/order_provider.dart';
 import 'package:danventory/providers/product_provider.dart';
+import 'package:danventory/providers/sale_provider.dart';
+import 'package:danventory/ui/pages/sale_page.dart';
 
 import 'package:danventory/ui/utils/theme_setting.dart';
 import 'package:danventory/ui/widgets/empty_widget.dart';
 import 'package:danventory/ui/widgets/list_tile_widget_order.dart';
 import 'package:danventory/ui/widgets/safe_scaffold.dart';
+import 'package:danventory/ui/widgets/snack_bar.dart';
 import 'package:datetime_picker_formfield_new/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:flutter_skeleton_ui/flutter_skeleton_ui.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 class OrderPage extends StatelessWidget {
-  final int productId;
-  final String productName;
-  const OrderPage(
-      {super.key, required this.productId, required this.productName});
+  final ProductModel productModel;
+  const OrderPage({super.key, required this.productModel});
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
@@ -32,44 +37,95 @@ class OrderPage extends StatelessWidget {
         Provider.of<OrderProvider>(context, listen: false);
 
     return SafeScaffold(
-      floatingActionButton: FloatingActionButton(
-          backgroundColor: ThemeSetting.greenColor,
-          child: const Icon(
-            Icons.add,
-            color: Colors.white,
-          ),
-          onPressed: () async {
-            await showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10.0))),
-                  content: Builder(
-                    builder: (context) {
-                      var width = MediaQuery.of(context).size.width;
+      floatingActionButtonLocation: ExpandableFab.location,
+      floatingActionButton: ExpandableFab(
+        openButtonBuilder: RotateFloatingActionButtonBuilder(
+            child: const Icon(Icons.menu),
+            fabSize: ExpandableFabSize.regular,
+            backgroundColor: ThemeSetting.principalColor,
+            foregroundColor: Colors.white),
+        closeButtonBuilder: RotateFloatingActionButtonBuilder(
+            child: const Icon(Icons.close),
+            fabSize: ExpandableFabSize.regular,
+            backgroundColor: ThemeSetting.principalColor,
+            foregroundColor: Colors.white),
+        initialOpen: true,
+        distance: 80,
+        type: ExpandableFabType.up,
+        children: [
+          FloatingActionButton(
+              heroTag: "btn1",
+              backgroundColor: ThemeSetting.greenColor,
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      shape: const RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(10.0))),
+                      content: Builder(
+                        builder: (context) {
+                          var width = MediaQuery.of(context).size.width;
 
-                      return SizedBox(
-                        width: width - 20,
-                        child: OrderForm(
-                          productId: productId,
-                        ),
-                      );
-                    },
-                  ),
-                  title: const Text("Crear orden"),
-                  insetPadding: const EdgeInsets.all(20),
+                          return SizedBox(
+                            width: width - 20,
+                            child: OrderForm(
+                              productId: productModel.productId,
+                            ),
+                          );
+                        },
+                      ),
+                      title: const Text("Crear orden"),
+                      insetPadding: const EdgeInsets.all(20),
+                    );
+                  },
                 );
-              },
-            );
-          }),
+              }),
+          FloatingActionButton(
+              heroTag: "btn2",
+              backgroundColor: ThemeSetting.redColor,
+              child: const Icon(
+                Icons.remove,
+                color: Colors.white,
+              ),
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      shape: const RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(10.0))),
+                      content: Builder(
+                        builder: (context) {
+                          var width = MediaQuery.of(context).size.width;
+
+                          return SizedBox(
+                            width: width - 20,
+                            child: SaleForm(),
+                          );
+                        },
+                      ),
+                      title: const Text("Crear ventas"),
+                      insetPadding: const EdgeInsets.all(20),
+                    );
+                  },
+                );
+              }),
+        ],
+      ),
       appBar: AppBar(
         title: Text.rich(
           TextSpan(
             text: "Órdenes de: ",
             children: [
               TextSpan(
-                text: productName,
+                text: productModel.productName,
                 style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: ThemeSetting.principalColor),
@@ -83,7 +139,9 @@ class OrderPage extends StatelessWidget {
             itemBuilder: (context) {
               return [
                 const PopupMenuItem(child: StateSwitch()),
-                const PopupMenuItem(child: CalendarPicker())
+                const PopupMenuItem(child: RemainingQuantitySwitch()),
+                const PopupMenuItem(child: CalendarPicker()),
+                const PopupMenuItem(child: ChangeStockManagement())
               ];
             },
           )
@@ -103,38 +161,114 @@ class OrderPage extends StatelessWidget {
               builder: (context, orderProvider, child) {
                 List<OrderModel> orderModels =
                     orderProvider.orderModels.where((x) {
+                  // Filtro por estado
                   final isStatusMatching = x.status == orderProvider.isActive;
 
-                  if (principalOrderProvider.dates.isEmpty) {
-                    return isStatusMatching;
+                  bool isDateInRange = true;
+                  if (principalOrderProvider.dates.isNotEmpty) {
+                    final orderDate = x.orderDate;
+                    isDateInRange = orderDate
+                            .isAfter(principalOrderProvider.dates[0]!) &&
+                        orderDate.isBefore(principalOrderProvider.dates[1]!);
                   }
 
-                  final orderDate = x.orderDate;
-                  final isDateInRange =
-                      orderDate.isAfter(principalOrderProvider.dates[0]!) &&
-                          orderDate.isBefore(principalOrderProvider.dates[1]!);
-
-                  return isStatusMatching && isDateInRange;
+                  if (orderProvider.isRemainingQuantity) {
+                    return isStatusMatching &&
+                        isDateInRange &&
+                        x.remainingQuantity > 0;
+                  } else {
+                    return isStatusMatching && isDateInRange;
+                  }
                 }).toList();
                 if (orderProvider.orderModels.isNotEmpty) {
                   return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.start,
+                          children: [
+                            const Text("Método de gestión:"),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              orderProvider.stockManagementEnum ==
+                                      StockManagementEnum.fifo
+                                  ? "FIFO."
+                                  : "LIFO.",
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: ThemeSetting.principalColor),
+                            ),
+                            Text(
+                              stockManagementDescriptions[
+                                  principalOrderProvider.stockManagementEnum]!,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            text: "Mostrando: ",
+                            children: [
+                              TextSpan(
+                                text: orderProvider.isRemainingQuantity
+                                    ? "Con cantidades"
+                                    : "Todos",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: ThemeSetting.principalColor),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            text: "Órdenes: ",
+                            children: [
+                              TextSpan(
+                                text: "${orderModels.length}",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: ThemeSetting.principalColor),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            text: "Cantidad de producto restante: ",
+                            children: [
+                              TextSpan(
+                                text:
+                                    "${orderModels.fold(0, (a, b) => a + b.remainingQuantity)}",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: ThemeSetting.principalColor),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Divider(),
                         principalOrderProvider.dates.isEmpty
                             ? const SizedBox
                                 .shrink() // Si no hay fechas, no mostrar nada
                             : Container(
-                                padding: const EdgeInsets.all(8.0),
-                                child: TextButton(
-                                  onPressed: () {
-                                    principalOrderProvider.addDates(null);
-                                  },
-                                  child: Text(
+                                child: TextButton.icon(
+                                  label: Text(
                                     'Rango de fechas: ${_formatDate(principalOrderProvider.dates[0]!)} - ${_formatDate(principalOrderProvider.dates[1]!)}',
                                     style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: ThemeSetting.redColor),
+                                  ),
+                                  onPressed: () {
+                                    principalOrderProvider.addDates(null);
+                                  },
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: ThemeSetting.redColor,
                                   ),
                                 ),
                               ),
@@ -162,14 +296,21 @@ class OrderPage extends StatelessWidget {
                                           await orderProvider
                                               .delete(orderModel);
                                           productProvider.updateQuantity(
-                                              productId,
+                                              orderModel.productid,
                                               orderModel.remainingQuantity,
                                               orderModel.status);
                                         },
                                       )
                                     ]),
-                                child:
-                                    ListTileWidgetOrder(orderModel: orderModel),
+                                child: ListTileWidgetOrder(
+                                  orderModel: orderModel,
+                                  onTap: () async {
+                                    await Navigator.push(context,
+                                        MaterialPageRoute(builder: (context) {
+                                      return SalePage(orderModel: orderModel);
+                                    }));
+                                  },
+                                ),
                               );
                             },
                             itemCount: orderModels.length,
@@ -184,8 +325,52 @@ class OrderPage extends StatelessWidget {
           }
           return Container();
         },
-        future: principalOrderProvider.read(productId),
+        future: principalOrderProvider.read(productModel.productId),
       ),
+    );
+  }
+}
+
+class ChangeStockManagement extends StatelessWidget {
+  const ChangeStockManagement({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<OrderProvider>(
+      builder: (context, orderProviderValue, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text("Método:"),
+                const SizedBox(
+                  width: 10,
+                ),
+                DropdownButton<StockManagementEnum>(
+                  value: orderProviderValue.stockManagementEnum,
+                  items: const [
+                    DropdownMenuItem(
+                      value: StockManagementEnum.fifo,
+                      child: Text("FIFO"),
+                    ),
+                    DropdownMenuItem(
+                      value: StockManagementEnum.lifo,
+                      child: Text("LIFO"),
+                    )
+                  ],
+                  onChanged: (value) {
+                    orderProviderValue
+                        .changeStock(value ?? StockManagementEnum.fifo);
+                  },
+                ),
+              ],
+            )
+          ],
+        );
+      },
     );
   }
 }
@@ -233,6 +418,49 @@ class StateSwitch extends StatelessWidget {
   }
 }
 
+class RemainingQuantitySwitch extends StatelessWidget {
+  const RemainingQuantitySwitch({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<OrderProvider>(
+      builder: (context, orderProviderValue, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text("Cantidades:"),
+                const SizedBox(
+                  width: 10,
+                ),
+                DropdownButton(
+                  value: orderProviderValue.isActive,
+                  items: const [
+                    DropdownMenuItem(
+                      value: false,
+                      child: Text("Todos"),
+                    ),
+                    DropdownMenuItem(
+                      value: true,
+                      child: Text("Con cantidades"),
+                    )
+                  ],
+                  onChanged: (value) {
+                    orderProviderValue.changeRemaingQuantity();
+                  },
+                ),
+              ],
+            )
+          ],
+        );
+      },
+    );
+  }
+}
+
 class CalendarPicker extends StatelessWidget {
   const CalendarPicker({super.key});
 
@@ -265,6 +493,7 @@ class OrderForm extends StatelessWidget {
   final _salePriceController = TextEditingController();
   final _purchasePriceController = TextEditingController();
   final _datetimeController = TextEditingController();
+  DateTime _dateTime = DateTime.now();
   final int productId;
   final _formKey = GlobalKey<FormState>();
   OrderForm({super.key, required this.productId});
@@ -378,7 +607,8 @@ class OrderForm extends StatelessWidget {
                           initialTime: TimeOfDay.fromDateTime(
                               currentValue ?? DateTime.now()),
                         );
-                        return DateTimeField.combine(date, time);
+                        _dateTime = DateTimeField.combine(date, time);
+                        return _dateTime;
                       } else {
                         return currentValue;
                       }
@@ -395,7 +625,7 @@ class OrderForm extends StatelessWidget {
                           orderid: 0,
                           remainingQuantity:
                               int.parse(_quantityController.text),
-                          orderDate: DateTime.parse(_datetimeController.text),
+                          orderDate: _dateTime,
                           quantity: int.parse(_quantityController.text),
                           salePrice: double.parse(_salePriceController.text),
                           purchasePrice:
@@ -409,6 +639,201 @@ class OrderForm extends StatelessWidget {
                       }
                     },
                     child: const Text("Crear orden"))
+              ],
+            )));
+  }
+}
+
+class SaleForm extends StatelessWidget {
+  SaleForm({super.key});
+  final _quantityController = TextEditingController();
+
+  final _datetimeController = TextEditingController();
+
+  final _formKey = GlobalKey<FormState>();
+  @override
+  Widget build(BuildContext context) {
+    final principalOrderProvider =
+        Provider.of<OrderProvider>(context, listen: false);
+    final principalProductProvider =
+        Provider.of<ProductProvider>(context, listen: false);
+    final principalSaleProvider =
+        Provider.of<SaleProvider>(context, listen: false);
+    List<OrderModel> orderModels =
+        principalOrderProvider.orderModels.where((x) {
+      final isStatusMatching = x.status == true;
+
+      bool isDateInRange = true;
+      if (principalOrderProvider.dates.isNotEmpty) {
+        final orderDate = x.orderDate;
+        isDateInRange = orderDate.isAfter(principalOrderProvider.dates[0]!) &&
+            orderDate.isBefore(principalOrderProvider.dates[1]!);
+      }
+
+      return isStatusMatching && isDateInRange && x.remainingQuantity > 0;
+    }).toList();
+    final int remainingQuantity =
+        orderModels.fold(0, (a, b) => a + b.remainingQuantity);
+    final format = DateFormat("yyyy-MM-dd");
+    return SingleChildScrollView(
+        child: Form(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.start,
+                  children: [
+                    const Text("Método de gestión:"),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    Text(
+                      principalOrderProvider.stockManagementEnum ==
+                              StockManagementEnum.fifo
+                          ? "FIFO."
+                          : "LIFO.",
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: ThemeSetting.principalColor),
+                    ),
+                    Text(
+                      stockManagementDescriptions[
+                          principalOrderProvider.stockManagementEnum]!,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                TextFormField(
+                  controller: _quantityController,
+                  decoration: const InputDecoration(
+                    labelText: "Cantidad",
+                    prefixIcon: Icon(Icons.numbers),
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'[\.\-]')),
+                  ],
+                  keyboardType: const TextInputType.numberWithOptions(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, ingresa la cantidad';
+                    } else if (int.parse(value) <= 0) {
+                      return 'La cantidad debe ser mayor a 0';
+                    } else if (int.parse(value) > remainingQuantity) {
+                      return "La cantidad debe ser menor";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                DateTimeField(
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Por favor, selecciona una fecha';
+                    }
+                    return null;
+                  },
+                  controller: _datetimeController,
+                  format: format,
+                  decoration: const InputDecoration(
+                    labelText: "Fecha de las ventas",
+                    prefixIcon: Icon(Icons.calendar_today),
+                  ),
+                  onShowPicker: (context, currentValue) async {
+                    return await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(1900),
+                      initialDate: currentValue ?? DateTime.now(),
+                      lastDate: DateTime(2100),
+                    ).then((DateTime? date) async {
+                      if (date != null) {
+                        final time = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.fromDateTime(
+                              currentValue ?? DateTime.now()),
+                        );
+                        _datetimeController.text =
+                            DateTimeField.combine(date, time).toString();
+                        return DateTimeField.combine(date, time);
+                      } else {
+                        return currentValue;
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                ElevatedButton(
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        final int quantity =
+                            int.parse(_quantityController.text);
+                        if (quantity < orderModels[0].remainingQuantity) {
+                          principalSaleProvider.create(SaleModel(
+                            saleDate: DateTime.parse(_datetimeController.text),
+                            quantity: int.parse(_quantityController.text),
+                            status: true,
+                            orderId: orderModels[0].orderid,
+                            saleId: 0,
+                          ));
+                          principalProductProvider.updateQuantity(
+                              orderModels[0].productid,
+                              int.parse(_quantityController.text),
+                              true);
+                          principalOrderProvider.updateQuantity(
+                              orderModels[0].orderid,
+                              int.parse(_quantityController.text),
+                              true);
+                        } else {
+                          try {
+                            List<SaleModel> sales = [];
+                            int quantity = int.parse(_quantityController.text);
+                            for (OrderModel orderModel in orderModels) {
+                              if (quantity > orderModel.remainingQuantity) {
+                                sales.add(SaleModel(
+                                    saleId: 0,
+                                    orderId: orderModel.orderid,
+                                    saleDate: DateTime.parse(
+                                        _datetimeController.text),
+                                    quantity: orderModel.remainingQuantity,
+                                    status: true));
+                                quantity -= orderModel.remainingQuantity;
+                              } else {
+                                sales.add(SaleModel(
+                                    saleId: 0,
+                                    orderId: orderModel.orderid,
+                                    saleDate: DateTime.parse(
+                                        _datetimeController.text),
+                                    quantity: quantity,
+                                    status: true));
+
+                                break;
+                              }
+                            }
+                            await principalSaleProvider.createSales(sales);
+                            principalOrderProvider.decreaseQuantity(sales);
+                            principalProductProvider.updateQuantity(
+                                orderModels[0].productid,
+                                int.parse(_quantityController.text),
+                                false);
+                            showSnackBar(context,
+                                "Se ha realizado el registro de las diferentes ventas de órdenes.");
+                          } catch (e) {
+                            showSnackBar(context, e.toString());
+                          }
+                        }
+
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: const Text("Crear ventas"))
               ],
             )));
   }

@@ -7,22 +7,40 @@ import 'package:flutter/material.dart';
 
 class ListTileWidgetOrder extends StatelessWidget {
   final OrderModel orderModel;
-
-  const ListTileWidgetOrder({super.key, required this.orderModel});
+  final Function onTap;
+  const ListTileWidgetOrder(
+      {super.key, required this.orderModel, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
+        onTap: () => onTap(),
         contentPadding: EdgeInsets.zero,
-        title: Row(children: [
-          Text(
-            "Fecha: ${DateConverter.formatDateWithMonthName(date: orderModel.orderDate)}",
-            style: const TextStyle(fontWeight: FontWeight.w600),
+        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text.rich(
+            TextSpan(
+              text: "ID de la orden: ",
+              children: [
+                TextSpan(
+                  text: orderModel.orderid.toString(),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: ThemeSetting.principalColor),
+                ),
+              ],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
-          const SizedBox(
-            width: 3,
-          ),
-          ChoiceChipWidget(isActive: orderModel.status)
+          Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
+            Text(
+              "Fecha: ${DateConverter.formatDateWithMonthName(date: orderModel.orderDate)}",
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(
+              width: 3,
+            ),
+            ChoiceChipWidget(isActive: orderModel.status)
+          ]),
         ]),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,6 +108,7 @@ class ListTileWidgetOrder extends StatelessWidget {
                 ],
               ),
             ),
+            const Divider(),
           ],
         ));
   }
