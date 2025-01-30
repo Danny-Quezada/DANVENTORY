@@ -280,6 +280,13 @@ class ImagePickerSelector extends StatelessWidget {
                       color: Colors.grey.shade300,
                       borderRadius:
                           const BorderRadius.all(Radius.circular(12))),
+                  child: const Center(
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                        Icon(Icons.camera_enhance_rounded),
+                        Text("Selecciona fotos de tu galería")
+                      ])),
                 ),
               );
             },
