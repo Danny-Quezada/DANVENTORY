@@ -1,4 +1,3 @@
-
 import 'package:danventory/domain/entities/product_model.dart';
 import 'package:danventory/providers/product_provider.dart';
 import 'package:danventory/providers/user_provider.dart';
@@ -76,8 +75,9 @@ class PrincipalPage extends StatelessWidget {
                                 motion: const DrawerMotion(),
                                 children: [
                                   SlidableAction(
-                                    onPressed: (context) {
-                                      Navigator.push(context, MaterialPageRoute(
+                                    onPressed: (context) async {
+                                      await Navigator.push(context,
+                                          MaterialPageRoute(
                                         builder: (context) {
                                           principalProductProvider
                                               .productModel = productModel;
@@ -88,6 +88,8 @@ class PrincipalPage extends StatelessWidget {
                                       principalProductProvider.category = null;
                                       principalProductProvider
                                           .productImageModels = [];
+                                      principalProductProvider.productModel =
+                                          null;
                                     },
                                     icon: Icons.edit,
                                     backgroundColor:
@@ -113,8 +115,8 @@ class PrincipalPage extends StatelessWidget {
                                   )
                                 ]),
                             child: ListTileWidgetProduct(
-                                onTap: () {
-                                  Navigator.push(context,
+                                onTap: () async {
+                                  await Navigator.push(context,
                                       MaterialPageRoute(builder: (context) {
                                     return OrderPage(
                                       productModel: productModel,
