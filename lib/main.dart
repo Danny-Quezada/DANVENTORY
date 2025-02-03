@@ -1,9 +1,11 @@
 import 'package:danventory/domain/interfaces/icategory_model.dart';
+import 'package:danventory/domain/interfaces/idashboard_model.dart';
 import 'package:danventory/domain/interfaces/iorder_model.dart';
 import 'package:danventory/domain/interfaces/iproduct_model.dart';
 import 'package:danventory/domain/interfaces/isale_model.dart';
 import 'package:danventory/domain/interfaces/iuser_model.dart';
 import 'package:danventory/infraestructure/repository/category_repository.dart';
+import 'package:danventory/infraestructure/repository/dashboard_repository.dart';
 import 'package:danventory/infraestructure/repository/order_repository.dart';
 import 'package:danventory/infraestructure/repository/product_repository.dart';
 import 'package:danventory/infraestructure/repository/sale_repository.dart';
@@ -66,6 +68,10 @@ void main(List<String> args) async {
       ChangeNotifierProvider<SaleProvider>(
           create: (context) => SaleProvider(
               iSaleModel: Provider.of<ISaleModel>(context, listen: false))),
+      Provider<IdashboardModel>(
+        create: (_) => DashboardRepository(),
+      ),
+     
     ],
     child: MaterialApp(
       localizationsDelegates: GlobalMaterialLocalizations.delegates,

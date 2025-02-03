@@ -392,7 +392,7 @@ class SaleForm extends StatelessWidget {
                           saleId: 0,
                         ));
                         principalProductProvider.updateQuantity(productId,
-                            int.parse(_quantityController.text), true);
+                            int.parse(_quantityController.text), false);
                         principalOrderProvider.updateQuantity(
                             orderid, int.parse(_quantityController.text), true);
                         Navigator.pop(context);

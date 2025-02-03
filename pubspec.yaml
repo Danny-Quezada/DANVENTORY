@@ -51,6 +51,8 @@ dependencies:
     sdk: flutter
   datetime_picker_formfield_new: ^2.1.0
   flutter_expandable_fab: ^2.3.0
+  syncfusion_flutter_charts: 26.2.8
+  fl_chart: 0.64.0
   
   
 dev_dependencies:
