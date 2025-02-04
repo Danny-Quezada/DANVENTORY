@@ -35,10 +35,8 @@ class SaleByMonthWidget extends StatelessWidget {
           return const Center(child: Text("No data available"));
         }
 
-        // Obtener los datos de ventas por mes
         List<SaleByMonth> salesData = snapshot.data!.toList();
 
-        // Calcular totales
         int totalQuantity =
             salesData.fold<int>(0, (sum, element) => sum + element.quantity);
         double totalSalesAmount = salesData.fold<double>(
@@ -48,34 +46,51 @@ class SaleByMonthWidget extends StatelessWidget {
         int totalSales =
             salesData.fold<int>(0, (sum, element) => sum + element.totalSales);
 
-        final regression = LinearRegression<SaleByMonth>(
-          getX: (sale) => sale.monthNumber.toDouble(),
-          getY: (sale) => sale.totalSalesAmount,
-        ).calculate(salesData);
-        final regressionQuantity = LinearRegression<SaleByMonth>(
-          getX: (sale) => sale.monthNumber.toDouble(),
-          getY: (sale) => sale.quantity.toDouble(),
-        ).calculate(salesData);
+        // Variables para la predicción
+        List<SaleByMonth> dataWithPrediction;
+        int? predictedMonthNumber;
+        LinearRegressionResult? regression;
+        LinearRegressionResult? regressionQuantity;
+        double? predictedSalesAmount;
+        double? predictedQuantity;
 
-        final predictedMonthNumber = salesData.last.monthNumber + 1 > 12
-            ? 1
-            : salesData.last.monthNumber + 1; // Manejar el cambio de año
-        final predictedSalesAmount = regression.predict(salesData.length + 1);
-        final predictedQuantity =
-            regressionQuantity.predict(salesData.length + 1);
+       
+        if (salesData.length > 1) {
+          regression = LinearRegression<SaleByMonth>(
+            getX: (sale) => sale.monthNumber.toDouble(),
+            getY: (sale) => sale.totalSalesAmount,
+          ).calculate(salesData);
 
-        final predictedMonth = SaleByMonth(
-            monthNumber: predictedMonthNumber,
-            totalSales: (regression.predict(salesData.length + 1)).round(),
-            totalSalesAmount: predictedSalesAmount,
-            totalPurchaseAmount: regression.predict(salesData.length + 1),
-            quantity: predictedQuantity.toInt());
+          regressionQuantity = LinearRegression<SaleByMonth>(
+            getX: (sale) => sale.monthNumber.toDouble(),
+            getY: (sale) => sale.quantity.toDouble(),
+          ).calculate(salesData);
 
-        List<SaleByMonth> dataWithPrediction = [...salesData, predictedMonth];
+          
+          predictedMonthNumber =
+              salesData.last.monthNumber + 1 > 12 ? 1 : salesData.last.monthNumber + 1;
+
+        
+          predictedSalesAmount = regression.predict(salesData.length + 1);
+          predictedQuantity = regressionQuantity.predict(salesData.length + 1);
+
+          final predictedMonth = SaleByMonth(
+              monthNumber: predictedMonthNumber,
+              totalSales: predictedSalesAmount.round(),
+              totalSalesAmount: predictedSalesAmount,
+              totalPurchaseAmount: regression.predict(salesData.length + 1),
+              quantity: predictedQuantity.toInt());
+
+          dataWithPrediction = [...salesData, predictedMonth];
+        } else {
+         
+          dataWithPrediction = salesData;
+        }
 
         return GestureDetector(
           onTap: () async {
-            await aiButton("""
+        
+            final report = """
 # Reporte Analítico de Ventas Mensuales
 
 ## 📊 Métricas Clave del Período
@@ -84,6 +99,7 @@ class SaleByMonthWidget extends StatelessWidget {
 **Margen Bruto:** ${((totalSalesAmount - totalPurchaseAmount) / totalSalesAmount * 100).toStringAsFixed(2)}%  
 **Transacciones Realizadas:** $totalSales  
 **Unidades Comercializadas:** $totalQuantity  
+
 ## 📅 Desglose Mensual Detallado
 
 ${salesData.map((month) => '''
@@ -96,21 +112,28 @@ ${salesData.map((month) => '''
 | Margen Operativo       | ${calculateProfitPercentage(month.totalPurchaseAmount, month.totalSalesAmount).toStringAsFixed(2)}% |
 | Densidad Transaccional | \$${(month.totalSalesAmount / month.totalSales).toStringAsFixed(2)} por operación |
 | Eficiencia Stock       | ${(month.quantity / month.totalSales).toStringAsFixed(1)} unidades/transacción |
-
 ''').join('\n\n')}
 
-## 🔮 Proyección Estadística para ${DateConverter.monthNames[predictedMonthNumber - 1]}
+${salesData.length > 1
+    ? """
+## 🔮 Proyección Estadística para ${DateConverter.monthNames[predictedMonthNumber! - 1]}
 **Modelo:** Regresión Lineal Multivariable  
-**Ecuación:** `Y = ${regression.slope.toStringAsFixed(2)}X + ${regression.intercept.toStringAsFixed(2)}`  
+**Ecuación:** `Y = ${regression!.slope.toStringAsFixed(2)}X + ${regression.intercept.toStringAsFixed(2)}`  
 
 | Parámetro              | Proyección              | Confiabilidad         |
 |------------------------|-------------------------|-----------------------|
-| Ventas Esperadas       | \$${predictedSalesAmount.toStringAsFixed(2)} ||
-| Unidades Estimadas     | ${predictedQuantity.toInt()} | 90% Modelo R²        |
-| Margen Potencial       | ${calculateProfitPercentage(predictedMonth.totalPurchaseAmount, predictedMonth.totalSalesAmount).toStringAsFixed(2)}% | Basado en tendencia |
+| Ventas Esperadas       | \$${predictedSalesAmount!.toStringAsFixed(2)} ||
+| Unidades Estimadas     | ${predictedQuantity!.toInt()} | 90% Modelo R²        |
+| Margen Potencial       | ${calculateProfitPercentage(
+        regression.predict(salesData.length + 1),
+        predictedSalesAmount
+      ).toStringAsFixed(2)}% | Basado en tendencia |
+"""
+    : "\n*No hay suficientes datos para realizar proyecciones estadísticas.*"}
+---  
 
+**Preguntas Estratégicas para IA:**
 
-## ❓ Preguntas Estratégicas para IA
 1. **Patrones Temporales:**  
    ¿Qué factores estacionales impactan el margen operativo entre ${DateConverter.monthNames[salesData.first.monthNumber - 1]} y ${DateConverter.monthNames[salesData.last.monthNumber - 1]}?
 
@@ -127,17 +150,10 @@ ${salesData.map((month) => '''
    ¿Qué meses requieren planes de contingencia basados en la variabilidad histórica del margen bruto?
 
 6. **Maximización Predictiva:**  
-   ¿Qué acciones concretas recomiendas para superar las proyecciones en ${DateConverter.monthNames[predictedMonthNumber - 1]}?
+   ¿Qué acciones concretas recomiendas para superar las proyecciones en ${salesData.length > 1 ? DateConverter.monthNames[predictedMonthNumber! - 1] : "el siguiente período"}?
 
----
-
-**Variables Clave en Modelo Predictivo:**  
-- Coeficiente de Regresión: ${regression.slope.toStringAsFixed(4)} (Cada mes aporta \$${regression.slope.toStringAsFixed(2)} incremental)  
-- Intercepto Inicial: \$${regression.intercept.toStringAsFixed(2)}  
-  
-
-
-""", context);
+""";
+            await aiButton(report, context);
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,9 +253,9 @@ ${salesData.map((month) => '''
                     markerSettings: const MarkerSettings(isVisible: true),
                     dataLabelSettings: const DataLabelSettings(isVisible: true),
                     color: ThemeSetting.principalColor,
-                    // Cambiar el color del último punto (predicción) a verde
+                    // Si hay predicción, se pinta el último punto en verde
                     pointColorMapper: (SaleByMonth data, _) =>
-                        data.monthNumber == predictedMonthNumber
+                        (predictedMonthNumber != null && data.monthNumber == predictedMonthNumber)
                             ? ThemeSetting.greenColor
                             : ThemeSetting.principalColor,
                   ),
@@ -264,10 +280,5 @@ ${salesData.map((month) => '''
       },
     );
   }
-
-  String test() {
-    return """
-
-""";
-  }
 }
+
