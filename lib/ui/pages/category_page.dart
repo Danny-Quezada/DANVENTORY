@@ -2,6 +2,7 @@ import 'package:danventory/domain/entities/category_model.dart';
 import 'package:danventory/providers/category_provider.dart';
 import 'package:danventory/providers/user_provider.dart';
 import 'package:danventory/ui/utils/theme_setting.dart';
+import 'package:danventory/ui/widgets/ai_button.dart';
 import 'package:danventory/ui/widgets/empty_widget.dart';
 import 'package:danventory/ui/widgets/list_tile_widget_category.dart';
 import 'package:danventory/ui/widgets/safe_scaffold.dart';
@@ -60,66 +61,75 @@ class CategoryPage extends StatelessWidget {
                 }).toList();
 
                 if (categoryProvider.categoryModels.isNotEmpty) {
-                  return Column(children: [
-                    const SearchWidget(),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        padding: EdgeInsets.zero,
-                        itemBuilder: (context, index) {
-                          CategoryModel categoryModel = categoryModels[index];
-                          return Slidable(
-                            startActionPane: ActionPane(
-                                motion: const DrawerMotion(),
-                                children: [
-                                  SlidableAction(
-                                    backgroundColor:
-                                        ThemeSetting.principalColor,
-                                    icon: Icons.edit,
-                                    onPressed: (context) async {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: const Text(
-                                                "Actualizar categoría"),
-                                            content: CategoryForm(
-                                              categoryModel: categoryModel,
-                                            ),
+                  return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SearchWidget(),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        AIButtonWidget(
+                            message: message(
+                                principalCategoryProvider.categoryModels)),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            itemBuilder: (context, index) {
+                              CategoryModel categoryModel =
+                                  categoryModels[index];
+                              return Slidable(
+                                startActionPane: ActionPane(
+                                    motion: const DrawerMotion(),
+                                    children: [
+                                      SlidableAction(
+                                        backgroundColor:
+                                            ThemeSetting.principalColor,
+                                        icon: Icons.edit,
+                                        onPressed: (context) async {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title: const Text(
+                                                    "Actualizar categoría"),
+                                                content: CategoryForm(
+                                                  categoryModel: categoryModel,
+                                                ),
+                                              );
+                                            },
                                           );
                                         },
-                                      );
-                                    },
-                                  ),
-                                  SlidableAction(
-                                    foregroundColor: Colors.white,
-                                    backgroundColor:
-                                        categoryModel.status! == true
-                                            ? ThemeSetting.redColor
-                                            : ThemeSetting.greenColor,
-                                    icon: categoryModel.status! == true
-                                        ? Icons.delete
-                                        : Icons.replay,
-                                    onPressed: (context) async {
-                                      if (categoryModel.status != null) {
-                                        categoryModel.status =
-                                            !categoryModel.status!;
-                                      }
-                                      await categoryProvider
-                                          .delete(categoryModel);
-                                    },
-                                  )
-                                ]),
-                            child: ListTileWidgetCategory(
-                                categoryModel: categoryModel),
-                          );
-                        },
-                        itemCount: categoryModels.length,
-                      ),
-                    ),
-                  ]);
+                                      ),
+                                      SlidableAction(
+                                        foregroundColor: Colors.white,
+                                        backgroundColor:
+                                            categoryModel.status! == true
+                                                ? ThemeSetting.redColor
+                                                : ThemeSetting.greenColor,
+                                        icon: categoryModel.status! == true
+                                            ? Icons.delete
+                                            : Icons.replay,
+                                        onPressed: (context) async {
+                                          if (categoryModel.status != null) {
+                                            categoryModel.status =
+                                                !categoryModel.status!;
+                                          }
+                                          await categoryProvider
+                                              .delete(categoryModel);
+                                        },
+                                      )
+                                    ]),
+                                child: ListTileWidgetCategory(
+                                    categoryModel: categoryModel),
+                              );
+                            },
+                            itemCount: categoryModels.length,
+                          ),
+                        ),
+                      ]);
                 } else {
                   return const EmptyWidget(title: "Añade categorías");
                 }
@@ -131,6 +141,41 @@ class CategoryPage extends StatelessWidget {
         future: principalCategoryProvider.read(userProvider.userModel!.userId),
       ),
     );
+  }
+
+  String message(List<CategoryModel> categoryModels) {
+    return """
+# Resumen de Categorías del Usuario
+
+A continuación, se muestra un resumen de las categorías que has creado. Este contenido está diseñado para que la IA de DANVENTORY lo utilice y te brinde consejos, opiniones o respuestas personalizadas.
+
+## Lista de Categorías
+
+${categoryModels.map((category) {
+  return '''
+- **${category.name}**
+  - **Descripción:** ${category.description ?? "Sin descripción"}
+  - **Estado:** ${category.status == true ? "Activo" : "Inactivo"}
+  - **ID de Usuario:** ${category.userId}
+''';
+}).join('\n')}
+
+## Información Adicional
+
+- **Total de Categorías Activas:** ${categoryModels.where((x) => x.status == true).length}
+- **Total de Categorías Inactivas:** ${categoryModels.where((x) => x.status == false).length}
+- **Categorías sin Descripción:** ${categoryModels.where((x) => x.description == null || x.description!.isEmpty).length}
+
+## Recomendaciones y preguntas para la IA
+
+
+1. ¿Qué consejos tienes para organizar mejor mis categorías?
+2. ¿Cómo puedo optimizar la descripción de mis categorías?
+3. ¿Qué categorías debería reactivar o desactivar según mis necesidades?
+4. ¿Cómo puedo manejar productos que no encajan en ninguna categoría existente?
+5. ¿Qué estrategias puedo usar para mejorar la visibilidad de mis productos en cada categoría?
+6. ¿Cómo puedo utilizar esta información para mejorar mi estrategia de marketing?
+""";
   }
 }
 

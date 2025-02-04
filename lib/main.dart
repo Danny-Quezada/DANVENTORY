@@ -1,15 +1,18 @@
+import 'package:danventory/domain/interfaces/ai_model.dart';
 import 'package:danventory/domain/interfaces/icategory_model.dart';
 import 'package:danventory/domain/interfaces/idashboard_model.dart';
 import 'package:danventory/domain/interfaces/iorder_model.dart';
 import 'package:danventory/domain/interfaces/iproduct_model.dart';
 import 'package:danventory/domain/interfaces/isale_model.dart';
 import 'package:danventory/domain/interfaces/iuser_model.dart';
+import 'package:danventory/infraestructure/repository/ai_repository.dart';
 import 'package:danventory/infraestructure/repository/category_repository.dart';
 import 'package:danventory/infraestructure/repository/dashboard_repository.dart';
 import 'package:danventory/infraestructure/repository/order_repository.dart';
 import 'package:danventory/infraestructure/repository/product_repository.dart';
 import 'package:danventory/infraestructure/repository/sale_repository.dart';
 import 'package:danventory/infraestructure/repository/user_repository.dart';
+import 'package:danventory/providers/ai_provider.dart';
 import 'package:danventory/providers/category_provider.dart';
 import 'package:danventory/providers/order_provider.dart';
 import 'package:danventory/providers/product_provider.dart';
@@ -71,6 +74,12 @@ void main(List<String> args) async {
       Provider<IdashboardModel>(
         create: (_) => DashboardRepository(),
       ),
+       Provider<AiModel>(
+        create: (_) => AiRepository(),
+      ),
+      ChangeNotifierProvider<AiProvider>(
+          create: (context) =>
+              AiProvider(aiModel: Provider.of<AiModel>(context, listen: false)))
      
     ],
     child: MaterialApp(
