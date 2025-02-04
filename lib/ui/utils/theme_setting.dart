@@ -6,6 +6,8 @@ class ThemeSetting {
   static const Color greenColor = Color(0xff6BCB77);
   static const Color borderColor = Color(0xFFC2BFBF);
 
+static const TextStyle titleStyle =
+    TextStyle(fontWeight: FontWeight.bold, fontSize: 15);
   static ThemeData themeData = ThemeData(
       useMaterial3: true,
       textButtonTheme: TextButtonThemeData(
