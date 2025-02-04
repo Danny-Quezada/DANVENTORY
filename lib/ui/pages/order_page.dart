@@ -21,6 +21,7 @@ import 'package:flutter_skeleton_ui/flutter_skeleton_ui.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:danventory/ui/widgets/ai_button.dart';
 
 class OrderPage extends StatelessWidget {
   final ProductModel productModel;
@@ -161,7 +162,6 @@ class OrderPage extends StatelessWidget {
               builder: (context, orderProvider, child) {
                 List<OrderModel> orderModels =
                     orderProvider.orderModels.where((x) {
-                  // Filtro por estado
                   final isStatusMatching = x.status == orderProvider.isActive;
 
                   bool isDateInRange = true;
@@ -251,6 +251,10 @@ class OrderPage extends StatelessWidget {
                           ),
                         ),
                         const Divider(),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        AIButtonWidget(message: message(orderProvider.orderModels)),
                         principalOrderProvider.dates.isEmpty
                             ? const SizedBox
                                 .shrink() // Si no hay fechas, no mostrar nada
@@ -328,6 +332,50 @@ class OrderPage extends StatelessWidget {
         future: principalOrderProvider.read(productModel.productId),
       ),
     );
+  }
+
+  String message(List<OrderModel> orderModels) {
+    return """
+# Resumen de Órdenes del Usuario
+
+A continuación, se muestra un resumen de las órdenes que he creado. Este contenido está diseñado para que la IA de DANVENTORY lo utilice y te brinde respuestas, consejos o sugerencias personalizadas.
+
+## Lista de Órdenes
+
+${orderModels.map((order) {
+      return '''
+- **ID de Orden:** ${order.orderid}
+  - **ID de Producto:** ${order.productid}
+  - **Fecha de Orden:** ${order.orderDate.toLocal().toString()}
+  - **Cantidad:** ${order.quantity}
+  - **Cantidad Restante:** ${order.remainingQuantity}
+  - **Precio de Venta:** \$${order.salePrice.toStringAsFixed(2)}
+  - **Precio de Compra:** \$${order.purchasePrice.toStringAsFixed(2)}
+  - **Estado:** ${order.status == true ? "Activo" : "Inactivo"}
+''';
+    }).join('\n')}
+
+## Información Adicional
+
+- **Total de Órdenes Activas:** ${orderModels.where((x) => x.status == true).length}
+- **Total de Órdenes Inactivas:** ${orderModels.where((x) => x.status == false).length}
+- **Órdenes con Cantidad Restante Baja (menos de 5 unidades):** ${orderModels.where((x) => x.remainingQuantity < 5).length}
+- **Órdenes con Mayor Margen de Ganancia:** ${orderModels.where((x) => (x.salePrice - x.purchasePrice) > 50).length}
+
+---
+
+## Preguntas para la IA
+
+Aquí tienes algunas preguntas que puedes hacerle a la IA sobre tus órdenes:
+
+1. ¿Cómo puedo mejorar la gestión de mis órdenes?
+2. ¿Qué órdenes tienen una cantidad restante baja y necesitan atención?
+3. ¿Qué órdenes tienen el mayor margen de ganancia?
+4. ¿Cómo puedo optimizar el precio de venta de mis productos?
+5. ¿Qué órdenes debería reactivar o desactivar según mis necesidades?
+6. ¿Cómo puedo manejar órdenes que tienen un margen de ganancia bajo?
+
+""";
   }
 }
 

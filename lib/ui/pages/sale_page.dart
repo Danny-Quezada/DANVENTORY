@@ -5,6 +5,7 @@ import 'package:danventory/providers/order_provider.dart';
 import 'package:danventory/providers/product_provider.dart';
 import 'package:danventory/providers/sale_provider.dart';
 import 'package:danventory/ui/utils/theme_setting.dart';
+import 'package:danventory/ui/widgets/ai_button.dart';
 import 'package:danventory/ui/widgets/empty_widget.dart';
 import 'package:danventory/ui/widgets/list_tile_widget_sales.dart';
 import 'package:danventory/ui/widgets/safe_scaffold.dart';
@@ -134,6 +135,10 @@ class SalePage extends StatelessWidget {
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 16),
                         ),
+                        const SizedBox(height: 10,),
+                        AIButtonWidget(
+                            message:
+                                message(saleProvider.saleModels, orderModel)),
                         principalSaleProvider.dates.isEmpty
                             ? const SizedBox
                                 .shrink() // Si no hay fechas, no mostrar nada
@@ -211,6 +216,55 @@ class SalePage extends StatelessWidget {
         future: principalSaleProvider.read(orderModel.orderid),
       ),
     );
+  }
+
+  String message(List<SaleModel> saleModels, OrderModel orderModel) {
+    return """
+# Resumen de Ventas del Usuario
+
+A continuación, se muestra un resumen de las ventas que he creado, relacionadas con la orden **${orderModel.orderid}**. Este contenido está diseñado para que la IA de DANVENTORY lo utilice y te brinde respuestas, consejos o sugerencias personalizadas.
+
+## Información de la Orden Asociada
+
+- **ID de Orden:** ${orderModel.orderid}
+- **ID de Producto:** ${orderModel.productid}
+- **Fecha de Orden:** ${orderModel.orderDate.toLocal().toString()}
+- **Cantidad de la Orden:** ${orderModel.quantity}
+- **Cantidad Restante:** ${orderModel.remainingQuantity}
+- **Precio de Venta:** \$${orderModel.salePrice.toStringAsFixed(2)}
+- **Precio de Compra:** \$${orderModel.purchasePrice.toStringAsFixed(2)}
+- **Estado de la Orden:** ${orderModel.status == true ? "Activo" : "Inactivo"}
+
+## Lista de Ventas
+
+${saleModels.map((sale) {
+      return '''
+- **ID de Venta:** ${sale.saleId}
+  - **ID de Orden:** ${sale.orderId}
+  - **Fecha de Venta:** ${sale.saleDate.toLocal().toString()}
+  - **Cantidad Vendida:** ${sale.quantity}
+  - **Estado:** ${sale.status == true ? "Activo" : "Inactivo"}
+''';
+    }).join('\n')}
+
+## Información Adicional
+
+- **Total de Ventas Activas:** ${saleModels.where((x) => x.status == true).length}
+- **Total de Ventas Inactivas:** ${saleModels.where((x) => x.status == false).length}
+- **Cantidad Total Vendida:** ${saleModels.fold(0, (sum, sale) => sum + sale.quantity)}
+- **Cantidad Restante en la Orden:** ${orderModel.remainingQuantity}
+
+## Preguntas para la IA
+
+Aquí tienes algunas preguntas que puedes hacerle a la IA sobre tus ventas:
+
+1. ¿Cómo puedo mejorar la gestión de mis ventas?
+2. ¿Qué ventas están asociadas a órdenes con baja cantidad restante?
+3. ¿Cómo puedo optimizar el proceso de ventas para maximizar las ganancias?
+4. ¿Qué ventas debería reactivar o desactivar según mis necesidades?
+5. ¿Cómo puedo manejar ventas que tienen un margen de ganancia bajo?
+6. ¿Qué estrategias puedo implementar para vender más productos de esta orden?
+""";
   }
 
   Color getColor() {
