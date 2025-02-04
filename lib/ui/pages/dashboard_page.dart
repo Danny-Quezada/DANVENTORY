@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:danventory/ui/utils/theme_setting.dart';
 import 'package:danventory/ui/widgets/charts/sale_by_category_widget.dart';
 import 'package:danventory/ui/widgets/charts/sale_by_month_category.dart';
 import 'package:danventory/ui/widgets/charts/sale_by_month_widget.dart';
@@ -14,6 +15,13 @@ class DashboardPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            "Toca cualquier titulo de gráfico para usar IA DANVENTORY 🤖",
+            style: TextStyle(
+                fontWeight: FontWeight.w300,
+                fontSize: 18,
+                color: ThemeSetting.borderColor),
+          ),
           SizedBox(
             height: 30,
           ),
@@ -35,7 +43,3 @@ class DashboardPage extends StatelessWidget {
     );
   }
 }
-
-
-
-
