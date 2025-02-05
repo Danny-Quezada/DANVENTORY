@@ -140,7 +140,13 @@ MODEL=
 ## Configuración de Supabase  <img src="https://www.vectorlogo.zone/logos/supabase/supabase-icon.svg" alt="supabase" width="40" height="30"/>
 DANVENTORY utiliza Supabase como base de datos principal. En la carpeta `documentacion/db` se encuentran:
 - **Scripts SQL** para la creación de tablas y estructuras necesarias.
+
+<img src="./documentation/db/postgres-db.png" alt="database"/>
+
 - **Funciones y procedimientos almacenados** para optimizar consultas y operaciones.
+    1. Ejecuta primero database.sql
+    2. Luego ejecuta functions.sql
+    3. Por último, ejecuta dashboardFunction.sql
 
 Para desplegar la base de datos en Supabase:
 1. Accede a [Supabase](https://supabase.com/).
